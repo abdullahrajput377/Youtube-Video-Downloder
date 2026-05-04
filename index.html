@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>YouTube Downloader Pro++</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #111;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .box {
+            background: #222;
+            padding: 20px;
+            border-radius: 10px;
+            width: 360px;
+        }
+#url{
+    width: 340px;
+}
+        input,
+        select,
+        button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 6px;
+        }
+
+        button {
+            background: rgb(37, 119, 207);
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .bar-wrap {
+            background: #444;
+            border-radius: 6px;
+            height: 10px;
+        }
+
+        .bar {
+            height: 10px;
+            width: 0%;
+            background: lime;
+        }
+
+        img {
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="box">
+        <h3>YouTube Downloader Pro++</h3>
+
+        <input id="url" placeholder="Paste URL">
+        <button onclick="getInfo()">Load Info</button>
+
+        <img id="thumb" style="display:none;">
+        <p id="title"></p>
+
+        <select id="type">
+            <option value="video">Video</option>
+            <option value="audio">Audio</option>
+        </select>
+
+        <button onclick="download()">Download</button>
+
+        <div class="bar-wrap">
+            <div id="bar" class="bar"></div>
+        </div>
+        <p id="status"></p>
+    </div>
+
+    <script>
+        async function getInfo() {
+            let url = document.getElementById('url').value;
+            let r = await fetch('http://localhost:3000/info', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
+            let d = await r.json();
+            if (d.success) {
+                thumb.src = d.thumbnail; thumb.style.display = 'block';
+                title.innerText = d.title;
+            }
+        }
+
+        function download() {
+            let url = document.getElementById('url').value;
+            let type = document.getElementById('type').value;
+            let bar = document.getElementById('bar');
+
+            let es = new EventSource(`http://localhost:3000/progress?url=${encodeURIComponent(url)}&type=${type}`);
+
+            es.onmessage = (e) => {
+                let data = JSON.parse(e.data);
+                bar.style.width = data.progress + '%';
+                if (data.done) {
+                    window.open(data.file);
+                    es.close();
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: youtube-downloader
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
